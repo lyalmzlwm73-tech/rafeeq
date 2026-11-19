@@ -26,6 +26,7 @@ input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-
 textarea{min-height:64px;resize:vertical}
 button{font:inherit;border:0;border-radius:10px;padding:10px 16px;background:var(--pr);color:var(--prt);cursor:pointer;margin-top:12px}
 button.g{background:transparent;color:var(--pr);border:1px solid var(--bd);margin-top:0;padding:6px 10px;font-size:.85rem}
+button.danger{color:var(--bad);border-color:var(--bad)}
 .row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .code{font-family:monospace;font-size:1.05rem;letter-spacing:2px;background:var(--bg);padding:2px 8px;border-radius:8px;direction:ltr;display:inline-block}
 .tag{display:inline-block;padding:1px 10px;border-radius:99px;font-size:.8rem;border:1px solid currentColor}
@@ -97,7 +98,7 @@ async function teacherView(){
   const o=st.map(s=>`<option value="${esc(s.code)}">${esc(s.name)}</option>`).join("");
   $("#v").innerHTML=`
   <div class="card"><h2>➕ إضافة طالب</h2><input id="nm" placeholder="اسم الطالب"><button id="as">إضافة وتوليد كود</button></div>
-  <div class="card"><h2>👥 الطلاب وأكوادهم</h2>${st.map(s=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--bd)"><span>${esc(s.name)}</span><span class="code">${esc(s.code)}</span></div>`).join("")||'<div class="msg">لا يوجد طلاب بعد</div>'}</div>
+  <div class="card"><h2>👥 الطلاب وأكوادهم</h2>${st.map(s=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--bd)"><span>${esc(s.name)}</span><span class="code">${esc(s.code)}</span><button class="g danger" data-del-student="${esc(s.code)}" data-student-name="${esc(s.name)}">حذف الطالب</button></div>`).join("")||'<div class="msg">لا يوجد طلاب بعد</div>'}</div>
   ${st.length?`<div class="card"><h2>📝 تسجيل متابعة</h2>
   <label>الطالب</label><select id="st">${o}</select>
   <label>التاريخ</label><input type="date" id="dt" value="${today()}">
@@ -109,6 +110,7 @@ async function teacherView(){
   <div class="card"><h2>🗂️ سجل طالب</h2><select id="vs"><option value="">اختر طالبًا…</option>${o}</select><div id="hist"></div></div>`:""}
   <button class="g" id="lo" style="margin-top:6px">تسجيل الخروج</button>`;
   $("#as").onclick=addStudent;$("#lo").onclick=()=>signOut(auth);
+  document.querySelectorAll("[data-del-student]").forEach(b=>b.onclick=()=>deleteStudent(b.dataset.delStudent,b.dataset.studentName));
   if(st.length){$("#ae").onclick=addEntry;$("#vs").onchange=showHist}
 }
 function newCode(){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=crypto.getRandomValues(new Uint8Array(8));return[...r].map(x=>a[x%a.length]).join("")}
@@ -117,6 +119,18 @@ async function addStudent(){
   const n=$("#nm").value.trim();if(!n)return;
   const code=newCode();
   try{await wait(setDoc(doc(db,"students",code),{name:n,code}));teacherView()}catch(e){alert("تعذّر الحفظ")}
+}
+async function deleteStudent(code,name){
+  if(!confirm(`هل أنت متأكد من حذف الطالب «${name}»؟ سيتم حذف كل سجلات متابعته نهائيًا.`))return;
+  try{
+    const snapshot=await getDocs(ents(code));
+    for(const item of snapshot.docs)await deleteDoc(item.ref);
+    await deleteDoc(doc(db,"students",code));
+    alert("تم حذف الطالب وسجلات متابعته.");
+    teacherView();
+  }catch(e){
+    alert("تعذّر الحذف. تأكد من الاتصال بالإنترنت وصلاحيات المحفّظ.");
+  }
 }
 async function addEntry(){
   const code=$("#st").value,e={date:$("#dt").value||today(),att:$("#at").value,rc:$("#rc").value.trim(),nr:$("#nr").value.trim(),bh:$("#bh").value,nt:$("#nt").value.trim(),ts:Date.now()};
