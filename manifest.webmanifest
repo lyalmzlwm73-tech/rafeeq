@@ -1,1 +1,24 @@
-{"name":"رفيق الحلقة","short_name":"رفيق الحلقة","description":"متابعة حلقة القرآن الكريم","start_url":"./","scope":"./","display":"standalone","dir":"rtl","lang":"ar","background_color":"#faf6ec","theme_color":"#1e5a3f","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
+{
+  "name": "رفيق الحلقة",
+  "short_name": "رفيق الحلقة",
+  "description": "تطبيق متابعة حلقات القرآن الكريم",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/rafeeq/",
+  "scope": "/rafeeq/",
+  "display": "standalone",
+  "background_color": "#fbf7ed",
+  "theme_color": "#1f5b45",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
