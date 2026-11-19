@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رفيق الحلقة</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e5a3f">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#faf6ec;--card:#fffdf7;--tx:#2b2118;--mut:#7a6a55;--pr:#1e5a3f;--prt:#fff8e6;--bd:#d9c79c;--gold:#b08d3c;--ok:#1f6b4f;--bad:#b3402f;--warn:#a8730f}
+:root[data-theme="dark"]{--bg:#141a17;--card:#1d2621;--tx:#e8eee9;--mut:#93a09a;--pr:#4fb88c;--prt:#0b1510;--bd:#2c3832;--ok:#4fb88c;--bad:#e8806e;--warn:#e0b04f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 6l6 18 18 6-18 6-6 18-6-18-18-6 18-6z' fill='none' stroke='%23b08d3c' stroke-opacity='.2'/%3E%3C/svg%3E");color:var(--tx);font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif;line-height:1.7;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:560px;margin:0 auto;padding:16px}
+h2{font-family:Amiri,"Noto Naskh Arabic",serif;font-size:1.2rem;margin:0 0 10px;color:var(--pr)}
+.hd{position:relative;text-align:center;padding:10px 0 12px;margin-bottom:16px;border-bottom:3px double var(--gold)}
+.orn{color:var(--gold);letter-spacing:8px}
+h1{font-family:Amiri,"Noto Naskh Arabic",serif;font-size:2.2rem;line-height:1.3;margin:0;color:var(--pr)}
+.t{font-weight:700;margin:0}
+.tg{position:absolute;top:6px;left:0;margin:0;padding:4px 10px;background:transparent;border:1px solid var(--gold);color:var(--tx)}
+.card{background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--bd)}
+label{display:block;font-size:.88rem;color:var(--mut);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+textarea{min-height:64px;resize:vertical}
+button{font:inherit;border:0;border-radius:10px;padding:10px 16px;background:var(--pr);color:var(--prt);cursor:pointer;margin-top:12px}
+button.g{background:transparent;color:var(--pr);border:1px solid var(--bd);margin-top:0;padding:6px 10px;font-size:.85rem}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.code{font-family:monospace;font-size:1.05rem;letter-spacing:2px;background:var(--bg);padding:2px 8px;border-radius:8px;direction:ltr;display:inline-block}
+.tag{display:inline-block;padding:1px 10px;border-radius:99px;font-size:.8rem;border:1px solid currentColor}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.e p{margin:6px 0}.e b{color:var(--mut);font-weight:600}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{margin:0;flex:1;background:var(--card);color:var(--tx);border:1px solid var(--bd)}.tabs button.on{background:var(--pr);color:var(--prt)}
+.msg{color:var(--mut);text-align:center;padding:14px}
+</style>
+</head>
+<body>
+<main>
+<header class="hd"><button class="tg" id="tg">🌙</button><div class="orn">❖ ✦ ❖</div><h1>رفيق الحلقة</h1><p class="t">متابعة حلقة القرآن الكريم</p><div class="orn">✦ ❖ ✦</div></header>
+<div id="app"><div class="msg">جاري التحميل…</div></div>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import {initializeFirestore,persistentLocalCache,collection,doc,getDoc,getDocs,setDoc,deleteDoc,query,orderBy} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+const app=initializeApp({apiKey:"AIzaSyA-pO8AuWZ6UCMPNxIXBOYWcdwvXRhcQWM",authDomain:"rafeeq-halaqa.firebaseapp.com",projectId:"rafeeq-halaqa",storageBucket:"rafeeq-halaqa.firebasestorage.app",messagingSenderId:"43144216315",appId:"1:43144216315:web:bfc778d0f815cb44427a5e"});
+const db=initializeFirestore(app,{localCache:persistentLocalCache()});
+const auth=getAuth(app);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||"";localStorage.setItem(k,v)}catch(e){return""}};
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt=d=>{try{return new Date(d+"T12:00:00").toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"})}catch(e){return d}};
+const ents=c=>collection(db,"students",c,"entries");
+let user=null,tab=ls("tab")||"parent";
+
+function setTheme(t){document.documentElement.setAttribute("data-theme",t);$("#tg").textContent=t=="dark"?"☀️":"🌙";ls("th",t)}
+$("#tg").onclick=()=>setTheme(document.documentElement.dataset.theme=="dark"?"light":"dark");
+setTheme(ls("th")||"light");
+
+onAuthStateChanged(auth,u=>{user=u;render()});
+function render(){
+  $("#app").innerHTML=`<div class="tabs"><button class="${tab=="parent"?"on":""}" data-t="parent">ولي الأمر</button><button class="${tab=="teacher"?"on":""}" data-t="teacher">المحفّظ</button></div><div id="v"></div>`;
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{tab=b.dataset.t;ls("tab",tab);render()});
+  tab=="teacher"?(user?teacherView():loginView()):parentView();
+}
+
+/* ولي الأمر */
+function parentView(){
+  const s=ls("code");
+  $("#v").innerHTML=`<div class="card"><h2>🔑 أدخل كود ابنك</h2><input id="cd" value="${esc(s)}" autocapitalize="characters" style="direction:ltr;text-align:center;letter-spacing:3px"><button id="go">عرض المتابعة</button></div><div id="res"></div>`;
+  $("#go").onclick=openCode;if(s)openCode();
+}
+async function openCode(){
+  const c=$("#cd").value.trim().toUpperCase().replace(/\s/g,"");if(!c)return;
+  $("#res").innerHTML='<div class="msg">…</div>';
+  try{
+    const d=await getDoc(doc(db,"students",c));
+    if(!d.exists()){$("#res").innerHTML='<div class="card msg bad">الكود غير صحيح</div>';return}
+    ls("code",c);
+    const list=await getEntries(c);
+    $("#res").innerHTML=`<div class="row" style="margin-bottom:8px"><h2 style="margin:0">${esc(d.data().name)}</h2><button class="g" id="rf">🔄 تحديث</button></div>`+(list.map(e=>entryHTML(e,false)).join("")||'<div class="card msg">لا توجد متابعات بعد</div>');
+    $("#rf").onclick=openCode;
+  }catch(e){$("#res").innerHTML='<div class="card msg bad">لا يوجد اتصال بالإنترنت. جرّب لاحقًا.</div>'}
+}
+
+/* المحفّظ */
+function loginView(){
+  $("#v").innerHTML=`<div class="card"><h2>🔐 دخول المحفّظ</h2><label>البريد الإلكتروني</label><input id="em" type="email" style="direction:ltr"><label>كلمة المرور</label><input id="pw" type="password" style="direction:ltr"><button id="li">دخول</button><p id="er" class="bad"></p></div>`;
+  $("#li").onclick=async()=>{try{await signInWithEmailAndPassword(auth,$("#em").value.trim(),$("#pw").value)}catch(e){$("#er").textContent="تعذّر الدخول. تأكد من البيانات والاتصال."}};
+}
+async function teacherView(){
+  $("#v").innerHTML='<div class="msg">…</div>';
+  let st=[];
+  try{st=(await getDocs(collection(db,"students"))).docs.map(d=>d.data()).sort((a,b)=>a.name.localeCompare(b.name,"ar"))}catch(e){$("#v").innerHTML='<div class="card msg bad">تعذّر التحميل (تأكد من الاتصال وصلاحيات القواعد)</div>';return}
+  const o=st.map(s=>`<option value="${esc(s.code)}">${esc(s.name)}</option>`).join("");
+  $("#v").innerHTML=`
+  <div class="card"><h2>➕ إضافة طالب</h2><input id="nm" placeholder="اسم الطالب"><button id="as">إضافة وتوليد كود</button></div>
+  <div class="card"><h2>👥 الطلاب وأكوادهم</h2>${st.map(s=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--bd)"><span>${esc(s.name)}</span><span class="code">${esc(s.code)}</span></div>`).join("")||'<div class="msg">لا يوجد طلاب بعد</div>'}</div>
+  ${st.length?`<div class="card"><h2>📝 تسجيل متابعة</h2>
+  <label>الطالب</label><select id="st">${o}</select>
+  <label>التاريخ</label><input type="date" id="dt" value="${today()}">
+  <label>الحضور</label><select id="at"><option>حاضر</option><option>غائب</option><option>متأخر</option></select>
+  <label>ما سمّعه ✅</label><textarea id="rc"></textarea>
+  <label>ما لم يسمّعه ❌</label><textarea id="nr"></textarea>
+  <label>سلوكه ومشاركته في الحلقة</label><select id="bh"><option>ممتاز</option><option>جيد</option><option>يحتاج متابعة</option></select>
+  <label>ملاحظات</label><textarea id="nt"></textarea><button id="ae">حفظ</button></div>
+  <div class="card"><h2>🗂️ سجل طالب</h2><select id="vs"><option value="">اختر طالبًا…</option>${o}</select><div id="hist"></div></div>`:""}
+  <button class="g" id="lo" style="margin-top:6px">تسجيل الخروج</button>`;
+  $("#as").onclick=addStudent;$("#lo").onclick=()=>signOut(auth);
+  if(st.length){$("#ae").onclick=addEntry;$("#vs").onchange=showHist}
+}
+function newCode(){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=crypto.getRandomValues(new Uint8Array(8));return[...r].map(x=>a[x%a.length]).join("")}
+const wait=(p,ms=2500)=>Promise.race([p,new Promise(r=>setTimeout(r,ms))]);
+async function addStudent(){
+  const n=$("#nm").value.trim();if(!n)return;
+  const code=newCode();
+  try{await wait(setDoc(doc(db,"students",code),{name:n,code}));teacherView()}catch(e){alert("تعذّر الحفظ")}
+}
+async function addEntry(){
+  const code=$("#st").value,e={date:$("#dt").value||today(),att:$("#at").value,rc:$("#rc").value.trim(),nr:$("#nr").value.trim(),bh:$("#bh").value,nt:$("#nt").value.trim(),ts:Date.now()};
+  try{await wait(setDoc(doc(ents(code)),e));["rc","nr","nt"].forEach(i=>$("#"+i).value="");alert("تم الحفظ ✅ (إذا كان الاتصال ضعيفًا سيُرفع تلقائيًا لاحقًا)");if($("#vs").value==code)showHist()}catch(x){alert("تعذّر الحفظ")}
+}
+async function showHist(){
+  const c=$("#vs").value;if(!c){$("#hist").innerHTML="";return}
+  $("#hist").innerHTML='<div class="msg">…</div>';
+  try{const l=await getEntries(c);$("#hist").innerHTML=l.map(e=>entryHTML(e,true)).join("")||'<div class="msg">لا يوجد سجل</div>';
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{if(confirm("حذف هذا السجل؟")){try{await wait(deleteDoc(doc(db,"students",c,"entries",b.dataset.del)));showHist()}catch(e){alert("تعذّر الحذف")}}})}catch(e){$("#hist").innerHTML='<div class="msg bad">تعذّر التحميل</div>'}
+}
+
+/* مشترك */
+async function getEntries(c){return(await getDocs(query(ents(c),orderBy("date","desc")))).docs.map(d=>({id:d.id,...d.data()}))}
+function entryHTML(e,t){
+  const bc=e.bh=="ممتاز"?"ok":e.bh=="جيد"?"warn":"bad",ac=e.att=="حاضر"?"ok":"bad";
+  return `<div class="card e"><div class="row"><b style="color:var(--tx)">${fmt(e.date)}</b><span class="tag ${ac}">${esc(e.att)}</span></div>
+  ${e.rc?`<p>✅ <b>سمّع:</b> ${esc(e.rc)}</p>`:""}${e.nr?`<p>❌ <b>لم يسمّع:</b> ${esc(e.nr)}</p>`:""}
+  <p>🕌 <b>في الحلقة:</b> <span class="tag ${bc}">${esc(e.bh)}</span></p>${e.nt?`<p>📝 <b>ملاحظات:</b> ${esc(e.nt)}</p>`:""}
+  ${t?`<button class="g" data-del="${esc(e.id)}">حذف</button>`:""}</div>`;
+}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
