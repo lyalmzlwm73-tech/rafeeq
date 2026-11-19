@@ -1,5 +1,5 @@
 const C="rh-v4";
-self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["./","index-1.html","manifest.webmanifest","icon-192.png","icon-512.png"])));self.skipWaiting()});
+self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png"])));self.skipWaiting()});
 self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch",e=>{
   const u=new URL(e.request.url);
